@@ -6,4 +6,4 @@ The values read in a second are summed up and divided by 60, generating the hour
 After 3 days, it erases all data in the array for the sake of memory
 The data can only be collected by the built-in bluetooth module in the ESP32
 
-That's it, i think
+That's it, i think 
