@@ -1,11 +1,11 @@
-//coded by D0kDoom
-//Github:
+// coded by D0kDoom
+// Github:
 
-//declaração de bibliotecas
+// declaração de bibliotecas
 #include <BluetoothSerial.h>
 #include <Bonezegei_DHT11.h>
 
-//início de variáveis
+// início de variáveis
 const int rainSensor = 35;
 const int humiSoloSensor = 34;
 
@@ -20,20 +20,19 @@ double temp = 0;
 
 int day = 0;
 int hour = 0;
-//fim de variáveis
+// fim de variáveis
 
-//declaração do Bluetooth do ESP
-BluetoothSerial SerialBT;
+BluetoothSerial SerialBT(Serial, true); // Passando Serial e o booleano
 
 void setup() {
-  //inicialização da comunicação serial
-  SerialBT.begin("ESP32_Bluetooth");
-  dht.begin();
+  Serial.begin(115200);
+  SerialBT.begin("Sistema de Monitoramento do Solo"); // Nome do módulo Bluetooth
 }
 
 void loop() {
-  if (SerialBT.available() > 0) {
-    String receivedData = SerialBT.readStringUntil('\n');
+  // verifica se há um pedido por dados, e se houver, envia os dados
+  if (SerialBT.available()) {
+    String receivedData = SerialBT.readStringUntil('\n', 100); // Timeout de 100ms
     if (receivedData.trim() == "1") {
       for (int i = 0; i < 3; i++) {
         String output = "";
@@ -43,17 +42,17 @@ void loop() {
           }
           output += "\n";
         }
-        if (SerialBT.connected()) {
-          SerialBT.println(output);
-        }
+        SerialBT.print(output); // Use print ao invés de println
       }
     }
   }
 
+  // contagem de tempo em millis para ciclos
   unsigned long currentMillis = millis();
   static unsigned long previousMillis = 0;
   const long interval = 60000;
 
+  // conta os ciclos
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
@@ -64,6 +63,7 @@ void loop() {
 
     cycle++;
 
+    // quando a variável cycles atinge 60, recomeça a contagem na próxima hora
     if (cycle >= 60) {
       double tempAverage = temp / cycle;
       double humiAirAverage = humiAir / cycle;
@@ -80,10 +80,12 @@ void loop() {
       humiSolo = 0;
       hour++;
 
+      // quando se completam 24 horas, recomeça o ciclo no dia seguinte
       if (hour >= 24) {
         day++;
         hour = 0;
 
+        // quando se completa 3 dias, reinicia-se o sistema
         if (day >= 3) {
           day = 0;
           for (int i = 0; i < 3; i++) {
