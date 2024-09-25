@@ -27,6 +27,7 @@ BluetoothSerial SerialBT(Serial, true); // Passando Serial e o booleano
 void setup() {
   Serial.begin(115200);
   SerialBT.begin("Sistema de Monitoramento do Solo"); // Nome do módulo Bluetooth
+  dht.begin;
 }
 
 void loop() {
