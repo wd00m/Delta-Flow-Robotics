@@ -1,5 +1,4 @@
 // coded by D0kDoom
-// Github:
 
 // declaração de bibliotecas
 #include <BluetoothSerial.h>
