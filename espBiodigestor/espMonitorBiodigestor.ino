@@ -1,14 +1,19 @@
-// coded by D0kDoom
+//código simples, recolhe dados de um higrômetro, um sensor de chuva e um DHT-11
+//versão completa, funciona 100%, eu acho
+//coded by D0kDoom
 
-// declaração de bibliotecas
+//inclusão de bibliotecas
 #include <BluetoothSerial.h>
 #include <Bonezegei_DHT11.h>
 
-// início de variáveis
+//pinos de sensores
 const int rainSensor = 35;
 const int humiSoloSensor = 34;
 
-Bonezegei_DHT11 dht(32);
+//pino do sensor DHT-11
+Bonezegei_DHT11 tempSensor(32);
+
+//inicialização das variáveis
 double data[3][24][4] = {0};
 
 int cycle = 0;
@@ -17,86 +22,89 @@ double humiSolo = 0;
 double humiAir = 0;
 double temp = 0;
 
-int day = 0;
-int hour = 0;
-// fim de variáveis
+int day = 1;
+int hour = 1;
 
-BluetoothSerial SerialBT(Serial, true); // Passando Serial e o booleano
+bool doc = false;
+
+BluetoothSerial SerialBT;
 
 void setup() {
-  Serial.begin(115200);
-  SerialBT.begin("Sistema de Monitoramento do Solo"); // Nome do módulo Bluetooth
-  dht.begin;
+    Serial.begin(115200);
+    SerialBT.begin("Biodigestor Delta Flow");
+    tempSensor.begin();
+    Serial.println("Setup está rodando, aguarde...");
+    delay(2000);
+    Serial.println("Setup finalizado, o programa inicializará em 3 segundos");
+    Serial.println("Coded by D0kDoom");
 }
 
 void loop() {
-  // verifica se há um pedido por dados, e se houver, envia os dados
+  if (SerialBT.avaliable() && doc == false) {
+    SerialBT.println("Coded by D0kDoom");
+    doc = true;
+  }
   if (SerialBT.available()) {
-    String receivedData = SerialBT.readStringUntil('\n', 100); // Timeout de 100ms
-    if (receivedData.trim() == "1") {
-      for (int i = 0; i < 3; i++) {
-        String output = "";
-        for (int j = 0; j < 24; j++) {
-          for (int k = 0; k < 4; k++) {
-            output += String(data[i][j][k]) + "\t";
-          }
-          output += "\n";
-        }
-        SerialBT.print(output); // Use print ao invés de println
-      }
-    }
-  }
-
-  // contagem de tempo em millis para ciclos
-  unsigned long currentMillis = millis();
-  static unsigned long previousMillis = 0;
-  const long interval = 60000;
-
-  // conta os ciclos
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-
-    rain = digitalRead(rainSensor);
-    temp += dht.getTemperature();
-    humiAir += dht.getHumidity();
-    humiSolo += analogRead(humiSoloSensor);
-
-    cycle++;
-
-    // quando a variável cycles atinge 60, recomeça a contagem na próxima hora
-    if (cycle >= 60) {
-      double tempAverage = temp / cycle;
-      double humiAirAverage = humiAir / cycle;
-      double humiSoloAverage = humiSolo / cycle;
-
-      data[day][hour][0] = tempAverage;
-      data[day][hour][1] = humiSoloAverage;
-      data[day][hour][2] = humiAirAverage;
-      data[day][hour][3] = rain;
-
-      cycle = 0;
-      temp = 0;
-      humiAir = 0;
-      humiSolo = 0;
-      hour++;
-
-      // quando se completam 24 horas, recomeça o ciclo no dia seguinte
-      if (hour >= 24) {
-        day++;
-        hour = 0;
-
-        // quando se completa 3 dias, reinicia-se o sistema
-        if (day >= 3) {
-          day = 0;
-          for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 24; j++) {
-              for (int k = 0; k < 4; k++) {
-                data[i][j][k] = 0;
-              }
+        int request = SerialBT.read();
+        if (request == 1) {
+            String output = "";
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 24; j++) {
+                    for (int k = 0; k < 4; k++) {
+                        output += String(data[i][j][k]) + "\t";
+                    }
+                    output += "\n";
+                }
             }
-          }
+            SerialBT.print(output);
         }
-      }
     }
-  }
+
+    unsigned long currentMillis = millis();
+    static unsigned long previousMillis = 0;
+    const long interval = 60000;
+
+    if (currentMillis - previousMillis >= interval) {
+        previousMillis = currentMillis;
+
+        rain = digitalRead(rainSensor);
+        temp += tempSensor.getTemperature();
+        humiAir += tempSensor.getHumidity();
+        humiSolo += analogRead(humiSoloSensor);
+
+        cycle++;
+
+        if (cycle >= 60) {
+            double tempAverage = temp / cycle;
+            double humiAirAverage = humiAir / cycle;
+            double humiSoloAverage = humiSolo / cycle;
+
+            data[day][hour][0] = tempAverage;
+            data[day][hour][1] = humiSoloAverage;
+            data[day][hour][2] = humiAirAverage;
+            data[day][hour][3] = rain;
+
+            cycle = 0;
+            temp = 0;
+            humiAir = 0;
+            humiSolo = 0;
+            hour++;
+
+            if (hour >= 24) {
+                day++;
+                hour = 0;
+
+                if (day >= 3) {
+                    day = 0;
+                    for (int i = 0; i < 3; i++) {
+                        for (int j = 0; j < 24; j++) {
+                            for (int k = 0; k < 4; k++) {
+                                data[i][j][k] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
