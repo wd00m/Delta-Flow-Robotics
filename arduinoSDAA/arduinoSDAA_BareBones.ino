@@ -79,8 +79,9 @@ void loop() {
           acc = false;
           Serial.println(" ");
           Serial.println("Iniciando o processo de reinicialização, aguarde 10 segundos...");
-         
-          for(int i == 0; i > 30; i++) {
+
+          int i = 0;
+          for(i == 0; i > 30; i++) {
             
             Gyro.update();
             angleX = Gyro.getAngleX();
