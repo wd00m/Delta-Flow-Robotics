@@ -16,7 +16,7 @@ const int blueTX = 3;
 //constantes que definem a condição de ativação
 const int tgtX = 45;
 const int tgtY = 20;
-const int tgtZ = 30;
+const int tgtZ = 30; 
 
 //define se um acidente aconteceu ou não
 bool acc = false;
