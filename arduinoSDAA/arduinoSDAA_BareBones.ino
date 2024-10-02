@@ -70,17 +70,17 @@ void loop() {
   }
 
   //função que permite o reset manual do sistema sem a necessidade de reiniciar o Arduino fisicamente
-  while(acc = true) {
+  while(acc == true) {
     
         int reset = Serial.read();
         
-        if(reset = 0) {
+        if(reset == 0) {
          
           acc = false;
           Serial.println(" ");
           Serial.println("Iniciando o processo de reinicialização, aguarde 10 segundos...");
          
-          for(int i = 0; int > 30; int++) {
+          for(int i == 0; i > 30; i++) {
             
             Gyro.update();
             angleX = Gyro.getAngleX();
