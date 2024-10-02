@@ -37,7 +37,7 @@ void setup() {
   Wire.begin();
   Gyro.begin();
   Gyro.calcGyroOffsets(true);
-
+  Serial.println(" ");
   Serial.println("Setup rodando, aguarde...");
  
   delay(1000);
@@ -53,7 +53,7 @@ void loop() {
   //recebe os valores de ângulo do giroscópio, envia os valores para as variáveis locais
   Gyro.update();
   double angleX = Gyro.getAngleX();
-  double angleY = Gyro.getAngleY();
+  double angleY = Gyro.getAngleY()+90;
   double angleZ = Gyro.getAngleZ();
 
   //faz a comparação dos ângulos e define se um acidente ocorreu
@@ -62,21 +62,37 @@ void loop() {
     acc = true;
 
     //envia o aviso junto com a geolocalização para o bluetooth
-    SerialBT.println("Oh Noes, um acidente foi detectado");
-    SerialBT.println("Enviando localização...");
-    SerialBT.println(lat);
-    SerialBT.println(longi);
+    Serial.println("Oh Noes, um acidente foi detectado");
+    Serial.println("Enviando localização...");
+    Serial.println(lat);
+    Serial.println(longi);
 
   }
 
   //função que permite o reset manual do sistema sem a necessidade de reiniciar o Arduino fisicamente
   while(acc = true) {
-      if (SerialBT.available()) {
-        char reset = SerialBT.read();
-        if(reset = "0") {
+    
+        int reset = Serial.read();
+        
+        if(reset = 0) {
+         
           acc = false;
+          Serial.println(" ");
+          Serial.println("Iniciando o processo de reinicialização, aguarde 10 segundos...");
+         
+          for(int i = 0; int > 30; int++) {
+            
+            Gyro.update();
+            angleX = Gyro.getAngleX();
+            angleY = Gyro.getAngleY()+90;
+            angleZ = Gyro.getAngleZ();
+            delay(300);
+            
+          }
+          Serial.println("Reinicialização concluída, recomeçando protocolo");
+    
         }
-      }
+      
   }
 
 }
